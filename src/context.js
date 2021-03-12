@@ -9,25 +9,76 @@ class ProductProvider extends Component{
     {
         super(props);
         this.state={
-            products:storeProducts,
-            detailProduct:detailProduct
+            products:[],
+            detailProduct:detailProduct,
+            cart:[],
+            modelOpen:false,
+            modelProduct:detailProduct
         }
     }
 
-  handleDetail=()=>{
-      console.log("hello from detail")
+    componentDidMount()
+    {
+        this.setProducts();
+    }
+    setProducts=()=>{
+           let tempProducts=[];
+           storeProducts.forEach(item=>{
+            const singleItem={...item};
+              tempProducts= [...tempProducts,singleItem];
+           })
+           this.setState({
+                products:tempProducts
+           })
+    }
+
+    getItem=id=>{
+        const product=this.state.products.find(item=>item.id===id);
+        return product;
+    }
+
+  handleDetail=id=>{
+       const product=this.getItem(id);
+       this.setState(()=>{
+           return {detailProduct:product}
+       });
   }
 
-  addToCart=()=>{
-      console.log("hello from add to cart");
+  addToCart=id=>{
+     let tempProducts=[...this.state.products];
+     const index=tempProducts.indexOf(this.getItem(id));
+     const product=tempProducts[index];
+     product.inCart=true;
+     product.count=1;
+     const price=product.price;
+     product.total=price;
+     this.setState(()=>{
+          return {products:tempProducts,cart:[...this.state.cart,product]}
+     },()=>{
+         console.log(this.state);
+     });
   }
 
+  openModel=id=>{
+      const product=this.getItem(id);
+      this.setState(()=>{
+         return {modelProduct:product,modelOpen:true}
+      })
+  }
+
+  closeModel=()=>{
+      this.setState(()=>{
+             return {modelOpen:false}
+      })
+  }
     render()
     {
         return(
             <ProductContext.Provider value={{...this.state,
             handleDetail:this.handleDetail,
-            addToCart:this.addToCart}}>
+            addToCart:this.addToCart,
+            openModel:this.openModel,
+            closeModel:this.closeModel}}>
              {this.props.children}
             </ProductContext.Provider>
         );
